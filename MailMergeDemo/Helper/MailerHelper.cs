@@ -23,7 +23,7 @@ namespace MailMergeDemo.Helper
         private static readonly bool defaultUseDefaultCredentials = bool.Parse(Startup.StaticConfig["Email:UseDefaultCredentials"]);
         private static readonly bool defaultEnableSsl = bool.Parse(Startup.StaticConfig["Email:EnableSsl"]);
 
-        public static async Task SendBulkEmailsAsync(EmailTemplate template, IFormFile paramsheet)
+        public static async Task<bool> SendBulkEmailsAsync(EmailTemplate template, IFormFile paramsheet)
         {
             var sheetContent = await ResolveFileAsync(paramsheet);
 
@@ -31,7 +31,7 @@ namespace MailMergeDemo.Helper
             int recipientIndex = sheetContent.Headers.findIndex("{{recipient}}");
             if (recipientIndex == -1)
             {
-                return;
+                return false;
             }
 
             using(var client = CreateDefaultSmtpClient())
@@ -50,7 +50,7 @@ namespace MailMergeDemo.Helper
                     client.Send(mail);
                 }
             }
-            
+            return true;
         }
 
         private static MailMessage GenerateMail(string to, string body, string subject)

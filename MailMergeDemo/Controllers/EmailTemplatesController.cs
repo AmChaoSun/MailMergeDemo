@@ -182,8 +182,15 @@ namespace MailMergeDemo.Controllers
             }
             try
             {
-                await MailerHelper.SendBulkEmailsAsync(emailTemplate, request.UploadFile);
-                return RedirectToAction(nameof(Index), new { result = "Emails sent successfully." });
+                if(await MailerHelper.SendBulkEmailsAsync(emailTemplate, request.UploadFile))
+                {
+                    return RedirectToAction(nameof(Index), new { result = "Emails sent successfully." });
+                }
+                else
+                {
+                    return RedirectToAction(nameof(Index), new { result = "Recipient is required in the csv" });
+                }
+                
             }
             catch(Exception ex)
             {
