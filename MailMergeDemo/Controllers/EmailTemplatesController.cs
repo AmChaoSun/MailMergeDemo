@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MailMergeDemo.Data;
 using MailMergeDemo.Models;
 using MailMergeDemo.Helper;
+using Microsoft.Extensions.Primitives;
 
 namespace MailMergeDemo.Controllers
 {
@@ -23,6 +24,10 @@ namespace MailMergeDemo.Controllers
         // GET: EmailTemplates
         public async Task<IActionResult> Index()
         {
+            if (Request.Query.TryGetValue("result", out StringValues val))
+            {
+                ViewData["result"] =  val.ToString();
+            }
             return View(await _context.EmailTemplate.ToListAsync());
         }
 
@@ -175,9 +180,15 @@ namespace MailMergeDemo.Controllers
             {
                 return NotFound();
             }
-
-            await MailerHelper.SendBulkEmailsAsync(emailTemplate, request.UploadFile);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await MailerHelper.SendBulkEmailsAsync(emailTemplate, request.UploadFile);
+                return RedirectToAction(nameof(Index), new { result = "Emails sent successfully." });
+            }
+            catch(Exception ex)
+            {
+                return RedirectToAction(nameof(Index), new { result = "An error occurred." + ex.Message });
+            }
         }
 
         private bool EmailTemplateExists(int id)
